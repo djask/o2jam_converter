@@ -27,11 +27,11 @@ Example usage:
 
 ## Dependencies
 
-- [fmod]: https://www.fmod.com/
+- [fmod (fmod.dll & fmodstudio.dll)](https://www.fmod.com/)
 
-- [SupersonciSound]: https://github.com/martindevans/SupersonicSound
+- [SupersonciSound (Included in c# project)](https://github.com/martindevans/SupersonicSound)
 
-- [ndesk]: https://www.nuget.org/packages/NDesk.Options/
+- [ndesk (Included in c# project)](https://www.nuget.org/packages/NDesk.Options/)
 
 ## Known Issues
 
