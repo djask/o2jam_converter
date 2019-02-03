@@ -6,9 +6,7 @@ This currently has working osz conversion for OGG only o2jam files (which is mos
 
 ## Usage
 
-Currently the program has a CLI interface. You can use it by the following syntax. 
-
-If you want to use the audio renderer, you will need the external render-ojn program for generating audio files. This enables previews in the Osu! beatmap selection. 
+Currently the program has a CLI interface. You can use it by the following syntax. It will try to autodetect keysounded files, and use virtual mode on osu! when necessary. 
 
 ```
 O2JamDebug.exe --help
