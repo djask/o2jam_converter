@@ -148,6 +148,8 @@ namespace O2JamUtils
             int payload_size = reader.ReadInt32();
             int padding = reader.ReadInt32();
 
+            Boolean zero_start = false;
+
             using (buf = f.CreateViewStream(28, 0, MemoryMappedFileAccess.Read))
             using (reader = new BinaryReader(buf))
             {
@@ -183,13 +185,15 @@ namespace O2JamUtils
                         default: break;
                     }
 
+                    if (note_ref == 0) zero_start = true;
+
                     //normal note
-                    //note_ref += 1;
+                    if(zero_start)note_ref += 1;
 
                     //background note
                     if (codec_code == 0)
                     {
-                        note_ref += 1001;
+                        note_ref += 1000;
                     }
 
                     //unknown sound
