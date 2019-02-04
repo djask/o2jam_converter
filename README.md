@@ -10,11 +10,15 @@ This tool is more geared towards non-keysounded ojm files, and doesn't work as w
 
 Currently the program has a CLI interface. You can use it by the following syntax. It will try to autodetect keysounded files, and use virtual mode on osu! when necessary. 
 
+If you have ffmpeg and want to reduce the size of fmod dumped wav files, you can use the -f flag as follows.
+
+Batch processing can be done with the powershell script in the o2jam_cli project
+
 ```
 O2JamCLI.exe --help
   -i, --input=VALUE          the input directory
   -o, --output=VALUE         output beatmaps folder
-  -r, --renderpath=VALUE     path for external audio renderer
+  -f, --useffmpeg            use ffmpeg to encode mp3
   -z, --ziposz.              zip the contents at the end
   -h, --help                 show this message and exit
 ```
@@ -35,6 +39,4 @@ Example usage:
 
 ## Known Issues
 
-- Some files have a note reference mismatch causing the keysounds to sound wrong
 - Wav files not rendering correctly
-- Large file sizes due to uncompressed wav dumps from fmodex
