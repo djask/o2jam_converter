@@ -284,8 +284,7 @@ namespace O2JamUtils
                 short audio_format, num_channels, block_align, bits_per_sample;
                 int sample_rate, bit_rate, unk_data, chunk_size;
 
-                file_offset += 56;
-                using (MemoryMappedViewAccessor buf = f.CreateViewAccessor(file_offset, 56, MemoryMappedFileAccess.Read))
+                using (var buf = f.CreateViewAccessor(file_offset, 56, MemoryMappedFileAccess.Read))
                 {
                     long pos = 0;
                     //WAV DATA HEADERS
@@ -303,16 +302,17 @@ namespace O2JamUtils
 
                     //sample size
                     chunk_size = buf.ReadInt32(pos); pos += 4;
-
-                    //0 size wav, go to next
-                    if (chunk_size == 0)
-                    {
-                        sample_id++;
-                        continue;
-                    }
                 }
 
-                file_offset += chunk_size;
+
+                file_offset += 56;
+                //0 size wav, go to next
+                if (chunk_size == 0)
+                {
+                    sample_id++;
+                    continue;
+                }
+
                 byte[] wav_data = new byte[chunk_size];
 
                 using (var buf = f.CreateViewAccessor(file_offset, chunk_size, MemoryMappedFileAccess.Read))
@@ -320,6 +320,7 @@ namespace O2JamUtils
                     //basically get remaining data
                     buf.ReadArray(0, wav_data, 0, chunk_size);
                 }
+                file_offset += chunk_size;
                 wav_data = Rearrange(wav_data);
                 wav_data = OMC_xor(wav_data);
 
