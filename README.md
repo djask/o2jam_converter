@@ -27,6 +27,7 @@ Example usage:
 
 ```
 .\O2JamCLI.exe -i D:\Games\o2servers\new\o2ma2438.ojn -o D:\temp\output\ -z
+.\BatchConvert.ps1 D:\Games\o2jamFolder -o D:\temp\output
 ```
 
 ## Dependencies
