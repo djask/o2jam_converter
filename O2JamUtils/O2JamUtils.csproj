@@ -45,7 +45,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Helpers.cs" />
-    <Compile Include="OJNNoteEvent.cs" />
+    <Compile Include="OJNNoteUtils.cs" />
     <Compile Include="OJMDumper.cs" />
     <Compile Include="OJNData.cs" />
     <Compile Include="OsuBeatmap.cs" />

@@ -3,11 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.27703.2047
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2JamUtils", "o2jam_utils\O2JamUtils.csproj", "{74734D87-138A-4FE2-8ECA-28C23E19B2C4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConvertCLI", "ConvertCLI\ConvertCLI.csproj", "{08974887-3865-452D-A60F-FD74398E8CB6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2JamCLI", "o2jam_cli\O2JamCLI.csproj", "{08974887-3865-452D-A60F-FD74398E8CB6}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2JamGUI", "o2jam_gui\O2JamGUI.csproj", "{CBD803BD-28C7-4056-BDCC-5C6D70757904}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "O2JamUtils", "O2JamUtils\O2JamUtils.csproj", "{74734D87-138A-4FE2-8ECA-28C23E19B2C4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,18 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{74734D87-138A-4FE2-8ECA-28C23E19B2C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{74734D87-138A-4FE2-8ECA-28C23E19B2C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{74734D87-138A-4FE2-8ECA-28C23E19B2C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{74734D87-138A-4FE2-8ECA-28C23E19B2C4}.Release|Any CPU.Build.0 = Release|Any CPU
 		{08974887-3865-452D-A60F-FD74398E8CB6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{08974887-3865-452D-A60F-FD74398E8CB6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{08974887-3865-452D-A60F-FD74398E8CB6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{08974887-3865-452D-A60F-FD74398E8CB6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CBD803BD-28C7-4056-BDCC-5C6D70757904}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CBD803BD-28C7-4056-BDCC-5C6D70757904}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CBD803BD-28C7-4056-BDCC-5C6D70757904}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CBD803BD-28C7-4056-BDCC-5C6D70757904}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74734D87-138A-4FE2-8ECA-28C23E19B2C4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74734D87-138A-4FE2-8ECA-28C23E19B2C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74734D87-138A-4FE2-8ECA-28C23E19B2C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74734D87-138A-4FE2-8ECA-28C23E19B2C4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

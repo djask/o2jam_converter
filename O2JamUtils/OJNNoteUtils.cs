@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace O2JamUtils
 {
-    public class NotePackage
+    public class NoteUtils
     {
         public class Chart
         {

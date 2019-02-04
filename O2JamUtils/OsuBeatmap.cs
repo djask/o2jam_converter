@@ -22,36 +22,6 @@ namespace O2JamUtils
             OJM
         };
 
-        //timings for bpm changes plus their ms markings for osu format
-        private class MSTiming
-        {
-            public float MsMarking { get; set; }
-            public float MsPerMeasure { get; set; }
-            public float MeasureStart { get; set; }
-        }
-
-        private class OsuNote
-        {
-            public bool LN { get; set; }
-            public int Channel { get; set; }
-            public float MsStart { get; set; }
-            public float MsEnd = -1;
-            public int RefID { get; set; }
-        }
-
-        private class SampleTiming
-        {
-            public float MeasureStart { get; set; }
-        }
-
-        private class TimingComparer : IComparer<MSTiming>
-        {
-            public int Compare(MSTiming x, MSTiming y)
-            {
-                return x.MeasureStart.CompareTo(y.MeasureStart);
-            }
-        }
-
         //dumps file contents and returns the new directory with the contents
         public string BeatmapDump(string ojn_path, string out_dir, bool ffmpeg)
         {
@@ -72,7 +42,7 @@ namespace O2JamUtils
             DirectoryInfo o2jFolder = Directory.GetParent(ojn_path);
             string ojmPath = Path.Combine(o2jFolder.FullName, $"{Path.GetFileNameWithoutExtension(ojn_path)}.ojm");
 
-            NotePackage.Chart chart = ojnHeader.DumpHXPackage();
+            NoteUtils.Chart chart = ojnHeader.HXChart;
             int no_samples = chart.Notes.GroupBy(x => x.Value).Count();
             virtual_mode = no_samples > 10 ? true : false;
 
@@ -83,12 +53,10 @@ namespace O2JamUtils
             CreateDiff(outFolder, ojnHeader, Diff.HX, ffmpeg);
 
             //write NX
-            if (ojnHeader.level[1] < ojnHeader.level[2])
-                CreateDiff(outFolder, ojnHeader, Diff.NX, ffmpeg);
+            if(ojnHeader.NXChart != null)CreateDiff(outFolder, ojnHeader, Diff.NX, ffmpeg);
 
             //write EX
-            if (ojnHeader.level[0] < ojnHeader.level[1] || ojnHeader.level[0] < ojnHeader.level[2])
-                CreateDiff(outFolder, ojnHeader, Diff.EX, ffmpeg);
+            if(ojnHeader.EXChart != null)CreateDiff(outFolder, ojnHeader, Diff.EX, ffmpeg);
 
             if (!virtual_mode)
             {
@@ -140,15 +108,41 @@ namespace O2JamUtils
             return outFolder;
         }
 
+
+        //timings for bpm changes plus their ms markings for osu format
+        private class TimingBuffer
+        {
+            public float MsMarking { get; set; }
+            public float MsPerMeasure { get; set; }
+            public float MeasureStart { get; set; }
+        }
+
+        private class OsuNoteBuffer
+        {
+            public bool LN { get; set; }
+            public int Channel { get; set; }
+            public float MsStart { get; set; }
+            public float MsEnd = -1;
+            public int RefID { get; set; }
+        }
+
+        private class TimingComparer : IComparer<TimingBuffer>
+        {
+            public int Compare(TimingBuffer x, TimingBuffer y)
+            {
+                return x.MeasureStart.CompareTo(y.MeasureStart);
+            }
+        }
+
         private Boolean virtual_mode;
 
-        private List<MSTiming> OsuTimings { get; set; } = new List<MSTiming>();
-        private List<OsuNote> OsuNotes { get; set; } = new List<OsuNote>();
-        private List<OsuNote> OsuSamples { get; set; } = new List<OsuNote>();
+        private List<TimingBuffer> OsuTimings { get; set; } = new List<TimingBuffer>();
+        private List<OsuNoteBuffer> OsuNotes { get; set; } = new List<OsuNoteBuffer>();
+        private List<OsuNoteBuffer> OsuSamples { get; set; } = new List<OsuNoteBuffer>();
 
         private void CreateDiff(string path, OJNData ojn_header, Diff diff, bool ffmpeg)
         {
-            NotePackage.Chart chart;
+            NoteUtils.Chart chart;
 
             string diffname = null;
             string diffex = null;
@@ -157,15 +151,15 @@ namespace O2JamUtils
             {
                 default:
                 case Diff.EX:
-                    chart = ojn_header.DumpEXPackage();
+                    chart = ojn_header.EXChart;
                     diffex = $"_EX_LVL{ojn_header.level[0]}";
                     break;
                 case Diff.NX:
-                    chart = ojn_header.DumpNXPackage();
+                    chart = ojn_header.NXChart;
                     diffex = $"_NX_LVL{ojn_header.level[1]}";
                     break;
                 case Diff.HX:
-                    chart = ojn_header.DumpHXPackage();
+                    chart = ojn_header.HXChart;
                     diffex = $"_HX_LVL{ojn_header.level[2]}";
                     break;
             }
@@ -288,9 +282,9 @@ namespace O2JamUtils
             }
         }
 
-        private List<OsuNote> GenSampleSequence(FMODSystem fmod_sys)
+        private List<OsuNoteBuffer> GenSampleSequence(FMODSystem fmod_sys)
         {
-            List<OsuNote> sample_times = new List<OsuNote>();
+            List<OsuNoteBuffer> sample_times = new List<OsuNoteBuffer>();
             foreach (var sample in OsuSamples)
             {
                 if (fmod_sys.Samples.Any(n => n.RefID == sample.RefID))
@@ -310,7 +304,7 @@ namespace O2JamUtils
 
         private void PlaySong(FMODSystem fmod_sys)
         {
-            List<OsuNote> sample_times = GenSampleSequence(fmod_sys);
+            List<OsuNoteBuffer> sample_times = GenSampleSequence(fmod_sys);
 
             sample_times = sample_times.OrderBy(o => o.MsStart).ToList();
             long time = Helpers.HighResolutionDateTime.timenow;
@@ -328,13 +322,22 @@ namespace O2JamUtils
 
         private void RenderToFile(FMODSystem fmod_sys, float duration)
         {
-            List<OsuNote> sample_times = GenSampleSequence(fmod_sys);
+            List<OsuNoteBuffer> sample_times = GenSampleSequence(fmod_sys);
 
             sample_times = sample_times.OrderBy(o => o.MsStart).ToList();
             float elapsed = 0.0f;
             float rate = 1024.0f / 48000.0f * 1000.0f;
             int index = 0;
-            OsuNote next_id = sample_times[index];
+
+            OsuNoteBuffer next_id = null;
+            try
+            {
+                next_id = sample_times[index];
+            }
+            catch (System.ArgumentOutOfRangeException e)
+            {
+                Console.WriteLine("Issue with samples, perhaps the id is wrong");   
+            }
 
             while (elapsed < duration * 1000 + 1000)
             {
@@ -350,16 +353,16 @@ namespace O2JamUtils
             }
         }
 
-        private void GenTimings(List<NotePackage.BPMChange> timings)
+        private void GenTimings(List<NoteUtils.BPMChange> timings)
         {
             //elapsed milliseconds
-            NotePackage.BPMChange prev = null;
+            NoteUtils.BPMChange prev = null;
             float milliseconds = 0.0f;
 
             foreach (var timing in timings)
             {
                 // Console.WriteLine($"!timing change {timing.val} on {timing.measure_start}");
-                MSTiming ms_time = new MSTiming();
+                TimingBuffer ms_time = new TimingBuffer();
 
                 if (prev == null)
                 {
@@ -385,30 +388,30 @@ namespace O2JamUtils
             }
         }
 
-        private void GenNotes(List<NotePackage.NoteEvent> notes)
+        private void GenNotes(List<NoteUtils.NoteEvent> notes)
         {
             foreach (var note in notes)
             {
                 //Console.WriteLine($"channel {note.channel} start {note.measure_start} end {note.measure_end}");
                 //grab the last bpm change
-                MSTiming last_bpm = OsuTimings[0];
+                TimingBuffer last_bpm = OsuTimings[0];
 
                 //incase the end of a LN is after a bpm change
-                MSTiming next_bpm = null;
+                TimingBuffer next_bpm = null;
 
-                int index = OsuTimings.BinarySearch(new MSTiming { MeasureStart = note.MeasureStart }, new TimingComparer());
+                int index = OsuTimings.BinarySearch(new TimingBuffer { MeasureStart = note.MeasureStart }, new TimingComparer());
                 if (index < 0) index = ~index - 1;
                 last_bpm = OsuTimings[index];
 
                 //check for bpm changes throughout a long note
                 if (note.NoteType == 3)
                 {
-                    index = OsuTimings.BinarySearch(new MSTiming { MeasureStart = note.MeasureEnd }, new TimingComparer());
+                    index = OsuTimings.BinarySearch(new TimingBuffer { MeasureStart = note.MeasureEnd }, new TimingComparer());
                     if (index < 0) index = ~index - 1;
                     next_bpm = OsuTimings[index];
                 }
 
-                OsuNote osu_note = new OsuNote
+                OsuNoteBuffer osu_note = new OsuNoteBuffer
                 {
                     Channel = note.Channel
                 };

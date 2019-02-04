@@ -34,6 +34,10 @@ namespace O2JamUtils
         private readonly int[] note_offset = new int[3];
         public int CoverOffset { get; }
 
+        public NoteUtils.Chart EXChart { get; set; } = null;
+        public NoteUtils.Chart NXChart { get; set; } = null;
+        public NoteUtils.Chart HXChart { get; set; } = null;
+
         public class DiffInfo
         {
             public int EventCount { get; set; }
@@ -124,6 +128,10 @@ namespace O2JamUtils
             buf.ReadArray(offset, time, 0, 3); offset += 12;
             buf.ReadArray(offset, note_offset, 0, 3); offset += 12;
             CoverOffset = buf.ReadInt32(offset);
+
+            HXChart = NoteUtils.ReadOJNPackage(ojn_file, this, 2);
+            if (level[1] < level[2]) NXChart = NoteUtils.ReadOJNPackage(ojn_file, this, 1);
+            if (level[0] < level[2] || level[0] < level[1]) EXChart = NoteUtils.ReadOJNPackage(ojn_file, this, 0);
         }
 
         public void DumpImage(String out_dir)
@@ -141,22 +149,6 @@ namespace O2JamUtils
                     writer.Write(tmp);
                 }
             }
-        }
-
-        public NotePackage.Chart DumpEXPackage()
-        {
-            return NotePackage.ReadOJNPackage(ojn_file, this, 0);
-        }
-
-        public NotePackage.Chart DumpNXPackage()
-        {
-            return NotePackage.ReadOJNPackage(ojn_file, this, 1);
-        }
-
-        //third difficulty ends at cover offset
-        public NotePackage.Chart DumpHXPackage()
-        {
-            return NotePackage.ReadOJNPackage(ojn_file, this, 2);
         }
     };
 }
