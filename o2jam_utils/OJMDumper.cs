@@ -193,7 +193,8 @@ namespace O2JamUtils
                     //background note
                     if (codec_code == 0)
                     {
-                        note_ref += 1000;
+                        if (zero_start) note_ref += 999;
+                        else note_ref += 1000;
                     }
 
                     //unknown sound

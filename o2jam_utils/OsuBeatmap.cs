@@ -52,12 +52,6 @@ namespace O2JamUtils
             }
         }
 
-        private Boolean virtual_mode;
-
-        private List<MSTiming> OsuTimings { get; set; } = new List<MSTiming>();
-        private List<OsuNote> OsuNotes { get; set; } = new List<OsuNote>();
-        private List<OsuNote> OsuSamples { get; set; } = new List<OsuNote>();
-
         //dumps file contents and returns the new directory with the contents
         public string BeatmapDump(string ojn_path, string out_dir, bool ffmpeg)
         {
@@ -68,6 +62,10 @@ namespace O2JamUtils
             string folderName = $"{ojnHeader.SongID} {ojnHeader.Artist} - {ojnHeader.Title}";
             folderName = Helpers.GetSafeFilename(folderName);
             string outFolder = Path.Combine(out_dir, folderName);
+            if (File.Exists(outFolder + ".osz")) {
+                Console.WriteLine("File already exists, skipping...");
+                return null;
+            }
             DirectoryInfo directory = Directory.CreateDirectory(outFolder);
 
             //get the ojm path, we assume it is in the same directory
@@ -113,6 +111,7 @@ namespace O2JamUtils
                         p.WaitForExit();
 
                         File.Move("audio.mp3", Path.Combine(outFolder, "audio.mp3"));
+                        File.Delete("fmodoutput.wav");
                     }
                     catch (Win32Exception)
                     {
@@ -127,11 +126,25 @@ namespace O2JamUtils
             }
             else
             {
-                OJMDump.DumpSamples(ojmPath, outFolder);
+                try
+                {
+                    OJMDump.DumpSamples(ojmPath, outFolder);
+                }
+                catch(System.ArgumentException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                
             }
 
             return outFolder;
         }
+
+        private Boolean virtual_mode;
+
+        private List<MSTiming> OsuTimings { get; set; } = new List<MSTiming>();
+        private List<OsuNote> OsuNotes { get; set; } = new List<OsuNote>();
+        private List<OsuNote> OsuSamples { get; set; } = new List<OsuNote>();
 
         private void CreateDiff(string path, OJNData ojn_header, Diff diff, bool ffmpeg)
         {

@@ -72,7 +72,7 @@ namespace O2JamDebug
                 Console.Write($"Processing file {input}... ");
                 OsuBeatmap map = new OsuBeatmap();
                 String outDir = map.BeatmapDump(input, output, use_ffmpeg);
-                if (zipOSZ) Helpers.ZipDir(outDir, ".osz");
+                if (outDir != null && zipOSZ) Helpers.ZipDir(outDir, ".osz");
                 Console.Write("Done");
             }
         }
