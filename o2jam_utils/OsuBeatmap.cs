@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -57,7 +59,7 @@ namespace O2JamUtils
         private List<OsuNote> OsuSamples { get; set; } = new List<OsuNote>();
 
         //dumps file contents and returns the new directory with the contents
-        public string BeatmapDump(string ojn_path, string out_dir)
+        public string BeatmapDump(string ojn_path, string out_dir, bool ffmpeg)
         {
             //read ojn headers
             OJNData ojnHeader = new OJNData(ojn_path);
@@ -72,19 +74,23 @@ namespace O2JamUtils
             DirectoryInfo o2jFolder = Directory.GetParent(ojn_path);
             string ojmPath = Path.Combine(o2jFolder.FullName, $"{Path.GetFileNameWithoutExtension(ojn_path)}.ojm");
 
+            NotePackage.Chart chart = ojnHeader.DumpHXPackage();
+            int no_samples = chart.Notes.GroupBy(x => x.Value).Count();
+            virtual_mode = no_samples > 10 ? true : false;
+
             //dump image
             ojnHeader.DumpImage(outFolder);
 
             //write HX
-            CreateDiff(outFolder, ojnHeader, Diff.HX);
+            CreateDiff(outFolder, ojnHeader, Diff.HX, ffmpeg);
 
             //write NX
             if (ojnHeader.level[1] < ojnHeader.level[2])
-                CreateDiff(outFolder, ojnHeader, Diff.NX);
+                CreateDiff(outFolder, ojnHeader, Diff.NX, ffmpeg);
 
             //write EX
             if (ojnHeader.level[0] < ojnHeader.level[1] || ojnHeader.level[0] < ojnHeader.level[2])
-                CreateDiff(outFolder, ojnHeader, Diff.EX);
+                CreateDiff(outFolder, ojnHeader, Diff.EX, ffmpeg);
 
             if (!virtual_mode)
             {
@@ -92,9 +98,32 @@ namespace O2JamUtils
                 fmod_sys.LoadSamples(ojmPath, false);
 
                 RenderToFile(fmod_sys, ojnHeader.time[2]);
-                //PlaySong(fmod_sys);
                 fmod_sys.ReleaseSystem();
-                File.Move("fmodoutput.wav", Path.Combine(outFolder, "output.wav"));
+                if (ffmpeg)
+                {
+                    try
+                    {
+                        var p = new Process();
+                        p.StartInfo = new ProcessStartInfo("ffmpeg.exe", $"-i fmodoutput.wav -f mp3 audio.mp3")
+                        {
+                            UseShellExecute = false
+                        };
+
+                        p.Start();
+                        p.WaitForExit();
+
+                        File.Move("audio.mp3", Path.Combine(outFolder, "audio.mp3"));
+                    }
+                    catch (Win32Exception)
+                    {
+                        Console.WriteLine("You specified ffmpeg but no ffmpeg was found, aborting...");
+                        System.Environment.Exit(1);
+                    }
+                }
+                else
+                {
+                    File.Move("fmodoutput.wav", Path.Combine(outFolder, "output.wav"));
+                }
             }
             else
             {
@@ -104,7 +133,7 @@ namespace O2JamUtils
             return outFolder;
         }
 
-        private void CreateDiff(string path, OJNData ojn_header, Diff diff)
+        private void CreateDiff(string path, OJNData ojn_header, Diff diff, bool ffmpeg)
         {
             NotePackage.Chart chart;
 
@@ -125,15 +154,14 @@ namespace O2JamUtils
                 case Diff.HX:
                     chart = ojn_header.DumpHXPackage();
                     diffex = $"_HX_LVL{ojn_header.level[2]}";
-                    int no_samples = chart.Notes.GroupBy(x => x.Value).Count();
-                    virtual_mode = no_samples > 10 ? true : false;
                     break;
             }
             diffname = $"{ojn_header.Title}{diffex}.osu";
             diffname = Helpers.GetSafeFilename(diffname);
             diffname = Path.Combine(path, diffname);
 
-            string audio_file = virtual_mode ? "virtual" : "output.wav";
+            string audio_filename = ffmpeg ? "audio.mp3" : "output.wav";
+            string audio_file = virtual_mode ? "virtual" : audio_filename;
 
             string[] general =
             {

@@ -15,29 +15,7 @@ namespace O2JamDebug
         public static string input { get; set; } = null;
         public static string output { get; set; } = null;
         public static Boolean zipOSZ { get; set; } = false;
-
-        public static string rendererPath { get; set; } = null;
-
-        private static void processDir(string path, string output)
-        {
-            string[] files = System.IO.Directory.GetFiles(path, "*.ojn");
-            for (int i = 0; i < files.Length; i++)
-            {
-                Console.WriteLine(files[i]);
-                try
-                {
-                    Console.Write($"Processing file {files[i]}... ");
-                    OsuBeatmap map = new OsuBeatmap();
-                    String outDir = map.BeatmapDump(files[i], output);
-                    if (zipOSZ) Helpers.ZipDir(outDir,".osz");
-                    Console.WriteLine("Done");
-                }
-                catch
-                {
-                    continue;
-                }
-            }
-        }
+        public static Boolean use_ffmpeg { get; set; } = false;
 
         static void Main(string[] args)
         {
@@ -46,8 +24,8 @@ namespace O2JamDebug
                     v => input = v },
                 { "o|output=", "output beatmaps folder",
                     v => output = v },
-                { "r|renderpath=", "path for external audio renderer",
-                    v=> {if (v != null) rendererPath = v; } },
+                { "f|useffmpeg", "use ffmpeg to encode mp3",
+                    v=> {if (v != null) use_ffmpeg = true; } },
                 { "z|ziposz.", "zip the contents at the end",
                     v=> {if (v != null) zipOSZ = true; } },
                 { "h|help",  "show this message and exit",
@@ -85,28 +63,18 @@ namespace O2JamDebug
 
             FileAttributes attr = File.GetAttributes(input);
 
-            if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
+            if (Path.GetExtension(input) != ".ojn")
             {
-                Console.WriteLine("Processing directory...");
-                processDir(input, output);
+                Console.WriteLine("The file you specified doesn't seem to be an ojn file");
             }
             else
             {
-                if (Path.GetExtension(input) != ".ojn")
-                {
-                    Console.WriteLine("The file you specified doesn't seem to be an ojn file");
-                }
-                else
-                {
-                    Console.Write($"Processing file {input}... ");
-                    OsuBeatmap map = new OsuBeatmap();
-                    String outDir = map.BeatmapDump(input, output);
-                    if (zipOSZ) Helpers.ZipDir(outDir, ".osz");
-                    Console.Write("Done");
-                }
+                Console.Write($"Processing file {input}... ");
+                OsuBeatmap map = new OsuBeatmap();
+                String outDir = map.BeatmapDump(input, output, use_ffmpeg);
+                if (zipOSZ) Helpers.ZipDir(outDir, ".osz");
+                Console.Write("Done");
             }
-            //Console.WriteLine("Program complete, press any key to continue...");
-            //Console.ReadKey();
         }
     }
 }
