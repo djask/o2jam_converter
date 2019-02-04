@@ -284,6 +284,7 @@ namespace O2JamUtils
                 short audio_format, num_channels, block_align, bits_per_sample;
                 int sample_rate, bit_rate, unk_data, chunk_size;
 
+                file_offset += 56;
                 using (MemoryMappedViewAccessor buf = f.CreateViewAccessor(file_offset, 56, MemoryMappedFileAccess.Read))
                 {
                     long pos = 0;
@@ -323,7 +324,7 @@ namespace O2JamUtils
                 wav_data = OMC_xor(wav_data);
 
                 //write the filename can't be bothered finding out the encoding
-                byte[] bindata = new byte[chunk_size + 36];
+                byte[] bindata = new byte[chunk_size + 356];
                 using (var bstream = new MemoryStream(bindata))
                 using (BinaryWriter writer = new BinaryWriter(bstream))
                 {
@@ -458,7 +459,8 @@ namespace O2JamUtils
             byte this_byte;
             for (int i = 0; i < buf.Length; i++)
             {
-                temp = this_byte = buf[i];
+                temp = buf[i];
+                this_byte = buf[i];
 
                 if (((acc_keybyte << acc_counter) & 0x80) != 0)
                 {
@@ -484,12 +486,13 @@ namespace O2JamUtils
             int block_size = len / 17;
 
             byte[] raw_data = new byte[len];
-            System.Array.Copy(encoded_data, raw_data, 0);
 
             for (int i = 0; i < 17; i++)
             {
+                int inOffset = block_size * i;
+                int outOffset = block_size * REARRANGE_TABLE[key];
                 //i think this works properly
-                System.Array.ConstrainedCopy(encoded_data, i, raw_data, REARRANGE_TABLE[key], block_size);
+                System.Array.ConstrainedCopy(encoded_data, inOffset, raw_data, outOffset, block_size);
                 key++;
             }
             return raw_data;
