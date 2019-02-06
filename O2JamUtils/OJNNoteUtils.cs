@@ -45,8 +45,8 @@ namespace O2JamUtils
             public int Channel { get; set; }
 
             public short Value { get; set; }
-            public byte Volume { get; set; }
-            public byte Pan { get; set; }
+            public float Volume { get; set; }
+            public float Pan { get; set; }
             public byte NoteType { get; set; }
 
             //measure pos is event index / no_events
@@ -125,6 +125,7 @@ namespace O2JamUtils
                             short val = buf.ReadInt16(pos); pos += 2;
                             //skip empty events (but also add the offset)
                             if(val == 0) { pos += 2;  continue;  }
+                            val--;
 
                             //new noteevent object
                             NoteEvent note_event = new NoteEvent();
@@ -141,11 +142,16 @@ namespace O2JamUtils
                             byte raw_byte = buf.ReadByte(pos); pos++;
 
                             //split the 2nd byte into 2 nybbles
-                            note_event.Volume = (byte)(raw_byte & 0x0F);
-                            note_event.Pan = (byte)(raw_byte & 0xf0 >> 4);
+                            note_event.Volume = ((raw_byte >> 4) & 0x0F) / 16f;
+                            note_event.Pan = (raw_byte  & 0x0F);
+                            if (note_event.Pan == 0) note_event.Pan = 8;
+                            note_event.Pan -= 8;
+                            note_event.Pan /= 8f;
 
                             //get the note_type
                             note_event.NoteType = buf.ReadByte(pos); pos++;
+                            if (note_event.NoteType % 8 > 3) note_event.Value += 1000;
+                            note_event.NoteType %= 4;
 
                             //start of a long note, we record the measure time
                             if (channel < 9 && note_event.NoteType == 2 && start_holds[channel-2] == null)

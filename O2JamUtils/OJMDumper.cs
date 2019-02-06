@@ -148,12 +148,9 @@ namespace O2JamUtils
             int payload_size = reader.ReadInt32();
             int padding = reader.ReadInt32();
 
-            Boolean zero_start = false;
-
             using (buf = f.CreateViewStream(28, 0, MemoryMappedFileAccess.Read))
             using (reader = new BinaryReader(buf))
             {
-
                 for (int i = 0; i < sample_count; i++)
                 {
                     FMOD.CREATESOUNDEXINFO exinfo = new FMOD.CREATESOUNDEXINFO();
@@ -184,17 +181,10 @@ namespace O2JamUtils
                         case 32: M30_xor(sample_data, mask_0412); break;
                         default: break;
                     }
-
-                    if (note_ref == 0) zero_start = true;
-
-                    //normal note
-                    if(zero_start)note_ref += 1;
-
                     //background note
                     if (codec_code == 0)
                     {
-                        if (zero_start) note_ref += 999;
-                        else note_ref += 1000;
+                        note_ref += 1000;
                     }
 
                     //unknown sound
@@ -203,12 +193,11 @@ namespace O2JamUtils
                         Console.WriteLine("not recognized sample type");
                     }
 
-                    String filename = $"{note_ref}.ogg";
 
                     if (fmod_sys != null)
                     {
                         FMODSample sample = new FMODSample();
-                        sample.RefID = note_ref += 1;
+                        sample.RefID = note_ref;
                         sample.FileSize = sample_size;
                         sample.BinData = sample_data;
                         FMOD.Sound fmod_sound;
@@ -226,6 +215,7 @@ namespace O2JamUtils
                     }
                     else if (outpath != null)
                     {
+                        String filename = $"{note_ref}.ogg";
                         using (BinaryWriter writer = new BinaryWriter(File.Open(Path.Combine(outpath,filename), FileMode.Create)))
                         {
                             writer.Write(sample_data);
@@ -272,7 +262,7 @@ namespace O2JamUtils
             }
 
             file_offset = 20;
-            int sample_id = 1;
+            int sample_id = 0;
 
             acc_keybyte = 0xFF;
             acc_counter = 0;
@@ -371,7 +361,7 @@ namespace O2JamUtils
                 }
             }
             file_offset = ogg_start;
-            sample_id = 1001; //ogg uses 1000+
+            sample_id = 1000; //ogg uses 1000+
             byte[] tmp_buffer = new byte[1024];
             while (file_offset < filesize) //read ogg data
             {
