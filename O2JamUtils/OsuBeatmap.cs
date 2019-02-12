@@ -304,24 +304,6 @@ namespace O2JamUtils
             return sample_times;
         }
 
-        private void PlaySong(FMODSystem fmod_sys)
-        {
-            List<OsuNoteBuffer> sample_times = GenSampleSequence(fmod_sys);
-
-            sample_times = sample_times.OrderBy(o => o.MsStart).ToList();
-            long time = Helpers.HighResolutionDateTime.timenow;
-            foreach (var toplay in sample_times)
-            {
-                long elapsed_ms = Helpers.HighResolutionDateTime.timenow - time;
-                while (elapsed_ms < toplay.MsStart)
-                {
-                    elapsed_ms = Helpers.HighResolutionDateTime.timenow - time;
-                }
-                //Console.WriteLine(elapsed_ms);
-                fmod_sys.PlaySample(toplay.RefID);
-            }
-        }
-
         private void RenderToFile(FMODSystem fmod_sys, float duration)
         {
             List<OsuNoteBuffer> sample_times = GenSampleSequence(fmod_sys);
@@ -394,7 +376,6 @@ namespace O2JamUtils
         {
             foreach (var note in notes)
             {
-                //Console.WriteLine($"channel {note.channel} start {note.measure_start} end {note.measure_end}");
                 //grab the last bpm change
                 TimingBuffer last_bpm = OsuTimings[0];
 

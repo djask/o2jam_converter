@@ -97,6 +97,7 @@ namespace O2JamDebug
                     FileAttributes attr = File.GetAttributes(input);
                     if ((attr & FileAttributes.Directory) == FileAttributes.Directory)
                     {
+                        Console.WriteLine("Directory Detected...");
                         DirectoryInfo d = new DirectoryInfo(input);
                         FileInfo[] Files = d.GetFiles("*.ojn");
                         foreach(var file in Files)

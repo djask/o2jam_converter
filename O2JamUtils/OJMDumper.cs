@@ -89,6 +89,7 @@ namespace O2JamUtils
             return Encoding.Default.GetString(signature);
         }
 
+        //dumps samples into fmod list
         public static List<FMODSample> ExtractSamples(string path, FMOD.System fmod_sys, Boolean stream)
         {
             int signature;
@@ -114,6 +115,7 @@ namespace O2JamUtils
             return samples;
         }
 
+        //exports samples as physical audio files
         public static void DumpSamples(string path, string outpath)
         {
             int signature;
