@@ -42,7 +42,7 @@ namespace O2JamUtils
             DirectoryInfo o2jFolder = Directory.GetParent(ojn_path);
             string ojmPath = Path.Combine(o2jFolder.FullName, $"{Path.GetFileNameWithoutExtension(ojn_path)}.ojm");
 
-            NoteUtils.Chart chart = ojnHeader.HXChart;
+            OJNNoteUtils.Chart chart = ojnHeader.HXChart;
             int no_samples = chart.Notes.GroupBy(x => x.Value).Count();
             virtual_mode = no_samples > 10 ? true : false;
 
@@ -69,10 +69,12 @@ namespace O2JamUtils
                 {
                     try
                     {
-                        var p = new Process();
-                        p.StartInfo = new ProcessStartInfo("ffmpeg.exe", $"-i fmodoutput.wav -f mp3 audio.mp3")
+                        var p = new Process
                         {
-                            UseShellExecute = false
+                            StartInfo = new ProcessStartInfo("ffmpeg.exe", $"-i fmodoutput.wav -f mp3 audio.mp3")
+                            {
+                                UseShellExecute = false
+                            }
                         };
 
                         p.Start();
@@ -142,7 +144,7 @@ namespace O2JamUtils
 
         private void CreateDiff(string path, OJNData ojn_header, Diff diff, bool ffmpeg)
         {
-            NoteUtils.Chart chart;
+            OJNNoteUtils.Chart chart;
 
             string diffname = null;
             string diffex = null;
@@ -203,9 +205,9 @@ namespace O2JamUtils
             string[] difficulty =
             {
                 "[Difficulty]",
-                "HPDrainRate:5",
+                "HPDrainRate:8",
                 "CircleSize:7",
-                "OverallDifficulty:5",
+                "OverallDifficulty:8",
                 "ApproachRate:5",
                 "SliderMultiplier:1.4",
                 "SliderTickRate:1",
@@ -334,7 +336,7 @@ namespace O2JamUtils
             {
                 next_id = sample_times[index];
             }
-            catch (System.ArgumentOutOfRangeException e)
+            catch (System.ArgumentOutOfRangeException)
             {
                 Console.WriteLine("Issue with samples, perhaps the id is wrong");   
             }
@@ -353,10 +355,10 @@ namespace O2JamUtils
             }
         }
 
-        private void GenTimings(List<NoteUtils.BPMChange> timings)
+        private void GenTimings(List<OJNNoteUtils.BPMChange> timings)
         {
             //elapsed milliseconds
-            NoteUtils.BPMChange prev = null;
+            OJNNoteUtils.BPMChange prev = null;
             float milliseconds = 0.0f;
 
             foreach (var timing in timings)
@@ -388,7 +390,7 @@ namespace O2JamUtils
             }
         }
 
-        private void GenNotes(List<NoteUtils.NoteEvent> notes)
+        private void GenNotes(List<OJNNoteUtils.NoteEvent> notes)
         {
             foreach (var note in notes)
             {

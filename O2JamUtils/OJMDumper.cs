@@ -196,11 +196,12 @@ namespace O2JamUtils
 
                     if (fmod_sys != null)
                     {
-                        FMODSample sample = new FMODSample();
-                        sample.RefID = note_ref;
-                        sample.FileSize = sample_size;
-                        sample.BinData = sample_data;
-                        FMOD.Sound fmod_sound;
+                        FMODSample sample = new FMODSample
+                        {
+                            RefID = note_ref,
+                            FileSize = sample_size,
+                            BinData = sample_data
+                        };
 
                         exinfo.length = sample.FileSize;
                         exinfo.cbsize = Marshal.SizeOf(exinfo);
@@ -208,7 +209,7 @@ namespace O2JamUtils
                         if (stream) mode |= FMOD.MODE.CREATESTREAM;
                         else mode |= FMOD.MODE.CREATESAMPLE;
 
-                        var result = fmod_sys.createSound(sample.BinData, mode, ref exinfo, out fmod_sound);
+                        var result = fmod_sys.createSound(sample.BinData, mode, ref exinfo, out FMOD.Sound fmod_sound);
                         sample.Data = fmod_sound;
                         sample.AsStream = stream;
                         samples.Add(sample);
@@ -340,15 +341,16 @@ namespace O2JamUtils
 
                 if (fmod_sys != null)
                 {
-                    FMODSample sample = new FMODSample();
-                    sample.FileSize = (uint)filesize;
-                    sample.AsStream = stream;
-                    sample.BinData = bindata;
+                    FMODSample sample = new FMODSample
+                    {
+                        FileSize = (uint)filesize,
+                        AsStream = stream,
+                        BinData = bindata
+                    };
 
                     exinfo.cbsize = Marshal.SizeOf(exinfo);
                     exinfo.length = sample.FileSize;
-                    FMOD.Sound fmod_sound;
-                    FMOD.RESULT result = fmod_sys.createSound(sample.BinData, mode, ref exinfo, out fmod_sound);
+                    FMOD.RESULT result = fmod_sys.createSound(sample.BinData, mode, ref exinfo, out FMOD.Sound fmod_sound);
                     sample.Data = fmod_sound;
                     samples.Add(sample);
                 } 
@@ -386,12 +388,13 @@ namespace O2JamUtils
                 if (fmod_sys != null)
                 {
 
-                    FMODSample sample = new FMODSample();
-
-                    sample.BinData = new byte[sample_size];
-                    sample.AsStream = stream;
-                    sample.FileSize = (uint)sample_size;
-                    sample.RefID = (ushort)sample_id;
+                    FMODSample sample = new FMODSample
+                    {
+                        BinData = new byte[sample_size],
+                        AsStream = stream,
+                        FileSize = (uint)sample_size,
+                        RefID = (ushort)sample_id
+                    };
 
                     using (var buf = f.CreateViewStream(file_offset, sample_size, MemoryMappedFileAccess.Read))
                     using (BinaryReader reader = new BinaryReader(buf))
@@ -412,8 +415,7 @@ namespace O2JamUtils
                     exinfo.length = (uint)sample_size;
                     exinfo.cbsize = Marshal.SizeOf(exinfo);
 
-                    FMOD.Sound fmod_sound;
-                    var result = fmod_sys.createSound(sample.BinData, mode, ref exinfo, out fmod_sound);
+                    var result = fmod_sys.createSound(sample.BinData, mode, ref exinfo, out FMOD.Sound fmod_sound);
                     sample.Data = fmod_sound;
                     samples.Add(sample);
                 }

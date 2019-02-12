@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace O2JamUtils
 {
-    public class NoteUtils
+    public class OJNNoteUtils
     {
         public class Chart
         {
@@ -69,9 +69,11 @@ namespace O2JamUtils
             Chart chart = new Chart();
 
             //get the initial bpm timing (not sure if needed yet)...
-            BPMChange start_bpm = new BPMChange();
-            start_bpm.NewBPM = header.BPM;
-            start_bpm.MeasureStart = 0;
+            BPMChange start_bpm = new BPMChange
+            {
+                NewBPM = header.BPM,
+                MeasureStart = 0
+            };
             chart.Timings.Add(start_bpm);
 
             //some variables to keep track of stuff
@@ -110,9 +112,11 @@ namespace O2JamUtils
                             float val = buf.ReadSingle(pos); pos += 4;
                             if (val == 0) continue;
 
-                            BPMChange timing = new BPMChange();
-                            timing.NewBPM = val;
-                            timing.MeasureStart = time;
+                            BPMChange timing = new BPMChange
+                            {
+                                NewBPM = val,
+                                MeasureStart = time
+                            };
                             chart.Timings.Add(timing);
 
                         }
@@ -128,8 +132,10 @@ namespace O2JamUtils
                             val--;
 
                             //new noteevent object
-                            NoteEvent note_event = new NoteEvent();
-                            note_event.Value = val;
+                            NoteEvent note_event = new NoteEvent
+                            {
+                                Value = val
+                            };
 
                             //the measure time (e.g. 2.5 is measure 2, halfway throught the bar)
                             //logically with 8 events, the 4th one should be the middle right?
@@ -153,25 +159,28 @@ namespace O2JamUtils
                             if (note_event.NoteType % 8 > 3) note_event.Value += 1000;
                             note_event.NoteType %= 4;
 
-                            //start of a long note, we record the measure time
-                            if (channel < 9 && note_event.NoteType == 2 && start_holds[channel-2] == null)
+                            if (channel < 9 && start_holds[channel - 2] == null)
                             {
-                                start_holds[channel - 2] = note_event;
-                                continue;
-                            }
+                                //start of a long note, we record the measure time
+                                if (note_event.NoteType == 2)
+                                {
+                                    start_holds[channel - 2] = note_event;
+                                    continue;
+                                }
 
-                            //the end of a long note, we can put this into the note list
-                            else if(channel < 9 && note_event.NoteType == 3 && start_holds[channel-2] != null)
-                            {
-                                note_event.MeasureEnd = time;
-                                note_event.MeasureStart = start_holds[channel - 2].MeasureStart;
-                                start_holds[channel - 2] = null;
+                                //the end of a long note, we can put this into the note list
+                                else if (note_event.NoteType == 3)
+                                {
+                                    note_event.MeasureEnd = time;
+                                    note_event.MeasureStart = start_holds[channel - 2].MeasureStart;
+                                    start_holds[channel - 2] = null;
+                                }
                             }
 
 
                             //normal note procedure
                             //not a long note so no need for end measure
-                            else if(note_event.NoteType == 0)
+                            else if (note_event.NoteType == 0)
                                 note_event.MeasureEnd = -1;
 
                             //add to chart object
@@ -182,19 +191,6 @@ namespace O2JamUtils
                     }
                 }
             }
-
-            //sort chart by start time, multiple notes on the same timing sort from smallest to largest channel
-            //chart.Notes.Sort(
-            //    delegate (NoteEvent p1, NoteEvent p2)
-            //    {
-            //        int time = p1.MeasureStart.CompareTo(p2.MeasureStart);
-            //        if (time == 0)
-            //        {
-            //            return p1.Channel.CompareTo(p2.Channel);
-            //        }
-            //        return time;
-            //    }
-            //);
             return chart;
         }
     }

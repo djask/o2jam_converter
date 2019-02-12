@@ -34,9 +34,9 @@ namespace O2JamUtils
         private readonly int[] note_offset = new int[3];
         public int CoverOffset { get; }
 
-        public NoteUtils.Chart EXChart { get; set; } = null;
-        public NoteUtils.Chart NXChart { get; set; } = null;
-        public NoteUtils.Chart HXChart { get; set; } = null;
+        public OJNNoteUtils.Chart EXChart { get; set; } = null;
+        public OJNNoteUtils.Chart NXChart { get; set; } = null;
+        public OJNNoteUtils.Chart HXChart { get; set; } = null;
 
         public class DiffInfo
         {
@@ -129,9 +129,9 @@ namespace O2JamUtils
             buf.ReadArray(offset, note_offset, 0, 3); offset += 12;
             CoverOffset = buf.ReadInt32(offset);
 
-            HXChart = NoteUtils.ReadOJNPackage(ojn_file, this, 2);
-            if (level[1] < level[2]) NXChart = NoteUtils.ReadOJNPackage(ojn_file, this, 1);
-            if (level[0] < level[2] || level[0] < level[1]) EXChart = NoteUtils.ReadOJNPackage(ojn_file, this, 0);
+            HXChart = OJNNoteUtils.ReadOJNPackage(ojn_file, this, 2);
+            if (level[1] < level[2]) NXChart = OJNNoteUtils.ReadOJNPackage(ojn_file, this, 1);
+            if (level[0] < level[2] || level[0] < level[1]) EXChart = OJNNoteUtils.ReadOJNPackage(ojn_file, this, 0);
         }
 
         public void DumpImage(String out_dir)
