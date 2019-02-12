@@ -159,24 +159,21 @@ namespace O2JamUtils
                             if (note_event.NoteType % 8 > 3) note_event.Value += 1000;
                             note_event.NoteType %= 4;
 
-                            if (channel < 9 && start_holds[channel - 2] == null)
-                            {
-                                //start of a long note, we record the measure time
-                                if (note_event.NoteType == 2)
-                                {
-                                    start_holds[channel - 2] = note_event;
-                                    continue;
-                                }
 
-                                //the end of a long note, we can put this into the note list
-                                else if (note_event.NoteType == 3)
-                                {
-                                    note_event.MeasureEnd = time;
-                                    note_event.MeasureStart = start_holds[channel - 2].MeasureStart;
-                                    start_holds[channel - 2] = null;
-                                }
+                            //start of a long note, we record the measure time
+                            if (channel < 9 && note_event.NoteType == 2 && start_holds[channel - 2] == null)
+                            {
+                                start_holds[channel - 2] = note_event;
+                                continue;
                             }
 
+                            //the end of a long note, we can put this into the note list
+                            else if (channel < 9 && note_event.NoteType == 3 && start_holds[channel - 2] != null)
+                            {
+                                note_event.MeasureEnd = time;
+                                note_event.MeasureStart = start_holds[channel - 2].MeasureStart;
+                                start_holds[channel - 2] = null;
+                            }
 
                             //normal note procedure
                             //not a long note so no need for end measure
