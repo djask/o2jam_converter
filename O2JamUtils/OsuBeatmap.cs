@@ -22,12 +22,27 @@ namespace O2JamUtils
             OJM
         };
 
-        //dumps file contents and returns the new directory with the contents
-        public string BeatmapDump(string ojn_path, string out_dir, bool ffmpeg)
-        {
-            //read ojn headers
-            OJNData ojnHeader = new OJNData(ojn_path);
+        private OJNData ojnHeader;
+        private string ojn_path;
 
+        private bool virtual_mode;
+
+        //input flags
+        private bool flag_fmod;
+        private bool flag_ffmpeg;
+
+        public OsuBeatmap(string ojn_path, bool flag_fmod, bool flag_ffmpeg)
+        {
+            ojnHeader = new OJNData(ojn_path);
+            this.ojn_path = ojn_path;
+
+            this.flag_fmod = flag_fmod;
+            this.flag_ffmpeg = flag_ffmpeg;
+        }
+
+        //dumps file contents and returns the new directory with the contents
+        public string BeatmapDump(string out_dir)
+        {
             //output folder for beatmap
             string folderName = $"{ojnHeader.SongID} {ojnHeader.Artist} - {ojnHeader.Title}";
             folderName = Helpers.GetSafeFilename(folderName);
@@ -43,20 +58,27 @@ namespace O2JamUtils
             string ojmPath = Path.Combine(o2jFolder.FullName, $"{Path.GetFileNameWithoutExtension(ojn_path)}.ojm");
 
             OJNNoteUtils.Chart chart = ojnHeader.HXChart;
-            int no_samples = chart.Notes.GroupBy(x => x.Value).Count();
-            virtual_mode = no_samples > 10 ? true : false;
+            if (flag_fmod)
+            {
+                int no_samples = chart.Notes.GroupBy(x => x.Value).Count();
+                virtual_mode = no_samples > 10 ? true : false;
+            } 
+            else
+            {
+                virtual_mode = true;
+            }
 
             //dump image
             ojnHeader.DumpImage(outFolder);
 
             //write HX
-            CreateDiff(outFolder, ojnHeader, Diff.HX, ffmpeg);
+            CreateDiff(outFolder, Diff.HX);
 
             //write NX
-            if(ojnHeader.NXChart != null)CreateDiff(outFolder, ojnHeader, Diff.NX, ffmpeg);
+            if(ojnHeader.NXChart != null)CreateDiff(outFolder, Diff.NX);
 
             //write EX
-            if(ojnHeader.EXChart != null)CreateDiff(outFolder, ojnHeader, Diff.EX, ffmpeg);
+            if(ojnHeader.EXChart != null)CreateDiff(outFolder, Diff.EX);
 
             if (!virtual_mode)
             {
@@ -65,7 +87,7 @@ namespace O2JamUtils
 
                 RenderToFile(fmod_sys, ojnHeader.time[2]);
                 fmod_sys.ReleaseSystem();
-                if (ffmpeg)
+                if (flag_ffmpeg)
                 {
                     try
                     {
@@ -136,13 +158,11 @@ namespace O2JamUtils
             }
         }
 
-        private Boolean virtual_mode;
-
         private List<TimingBuffer> OsuTimings { get; set; } = new List<TimingBuffer>();
         private List<OsuNoteBuffer> OsuNotes { get; set; } = new List<OsuNoteBuffer>();
         private List<OsuNoteBuffer> OsuSamples { get; set; } = new List<OsuNoteBuffer>();
 
-        private void CreateDiff(string path, OJNData ojn_header, Diff diff, bool ffmpeg)
+        private void CreateDiff(string path, Diff diff)
         {
             OJNNoteUtils.Chart chart;
 
@@ -153,23 +173,23 @@ namespace O2JamUtils
             {
                 default:
                 case Diff.EX:
-                    chart = ojn_header.EXChart;
-                    diffex = $"_EX_LVL{ojn_header.level[0]}";
+                    chart = ojnHeader.EXChart;
+                    diffex = $"_EX_LVL{ojnHeader.level[0]}";
                     break;
                 case Diff.NX:
-                    chart = ojn_header.NXChart;
-                    diffex = $"_NX_LVL{ojn_header.level[1]}";
+                    chart = ojnHeader.NXChart;
+                    diffex = $"_NX_LVL{ojnHeader.level[1]}";
                     break;
                 case Diff.HX:
-                    chart = ojn_header.HXChart;
-                    diffex = $"_HX_LVL{ojn_header.level[2]}";
+                    chart = ojnHeader.HXChart;
+                    diffex = $"_HX_LVL{ojnHeader.level[2]}";
                     break;
             }
-            diffname = $"{ojn_header.Title}{diffex}.osu";
+            diffname = $"{ojnHeader.Title}{diffex}.osu";
             diffname = Helpers.GetSafeFilename(diffname);
             diffname = Path.Combine(path, diffname);
 
-            string audio_filename = ffmpeg ? "audio.mp3" : "output.wav";
+            string audio_filename = flag_ffmpeg ? "audio.mp3" : "output.wav";
             string audio_file = virtual_mode ? "virtual" : audio_filename;
 
             string[] general =
@@ -189,16 +209,16 @@ namespace O2JamUtils
             string[] metadata =
             {
                 "[Metadata]",
-                $"Title:{ojn_header.Title}",
-                $"TitleUnicode:{ojn_header.Title}",
-                $"Artist:{ojn_header.Artist}",
-                $"ArtistUnicode:{ojn_header.Artist}",
-                $"Creator:{ojn_header.Noter}",
+                $"Title:{ojnHeader.Title}",
+                $"TitleUnicode:{ojnHeader.Title}",
+                $"Artist:{ojnHeader.Artist}",
+                $"ArtistUnicode:{ojnHeader.Artist}",
+                $"Creator:{ojnHeader.Noter}",
                 $"Version:7k{diffex}",
                 "Source:o2jam",
-                $"Tags:o2jam {ojn_header.OJMFile}",
-                $"BeatmapID:{ojn_header.SongID}",
-                $"BeatmapSetID:{ojn_header.SongID}",
+                $"Tags:o2jam {ojnHeader.OJMFile}",
+                $"BeatmapID:{ojnHeader.SongID}",
+                $"BeatmapSetID:{ojnHeader.SongID}",
                 "\n"
             };
 

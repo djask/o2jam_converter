@@ -13,7 +13,7 @@ namespace O2JamDebug
         public static string output { get; set; } = null;
         public static bool zipOSZ { get; set; } = false;
         public static bool use_ffmpeg { get; set; } = false;
-        public static int hp { get; set; } = 8;
+        public static bool fmod_flag { get; set; } = false;
 
         public enum Mode
         {
@@ -32,10 +32,10 @@ namespace O2JamDebug
             else
             {
                 Console.Write($"Processing file {input}... ");
-                OsuBeatmap map = new OsuBeatmap();
-                String outDir = map.BeatmapDump(input, output, use_ffmpeg);
+                OsuBeatmap map = new OsuBeatmap(input, fmod_flag, use_ffmpeg);
+                String outDir = map.BeatmapDump(output);
                 if (outDir != null && zipOSZ) Helpers.ZipDir(outDir, ".osz");
-                Console.Write("Done");
+                Console.WriteLine("Done");
             }
         }
 
@@ -51,6 +51,8 @@ namespace O2JamDebug
                     v => input = v },
                 { "o|output=", "output beatmaps folder",
                     v => output = v },
+                { "k|keysound.", "use fmod to render",
+                    v=> {if (v != null) fmod_flag = true; } },
                 { "f|useffmpeg", "use ffmpeg to encode mp3",
                     v=> {if (v != null) use_ffmpeg = true; } },
                 { "z|ziposz.", "zip the contents at the end",
