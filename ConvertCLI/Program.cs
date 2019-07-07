@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 
 namespace O2JamDebug
 {
@@ -102,9 +103,17 @@ namespace O2JamDebug
                         Console.WriteLine("Directory Detected...");
                         DirectoryInfo d = new DirectoryInfo(input);
                         FileInfo[] Files = d.GetFiles("*.ojn");
-                        foreach(var file in Files)
+                        foreach (var file in Files)
                         {
-                            ConvertFile(file.FullName);
+                            try
+                            {
+                                ConvertFile(file.FullName);
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine($"Error, unhandled {e.Message}");
+                                continue;
+                            }
                         }
                     }
                     else
